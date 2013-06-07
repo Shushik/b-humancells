@@ -1,0 +1,23 @@
+.b-cells_are_ready .b-cells__head
+{
+    position: absolute;
+    top:      0;
+    left:     0;
+    z-index:  2;
+
+    table-layout: fixed;
+}
+
+.b-cells_are_ready .b-cells__body
+{
+    position: relative;
+
+    table-layout: fixed;
+
+    border-top-width: 0;
+}
+
+.b-cells_are_ready .b-cells__raws
+{
+    display: none;
+}

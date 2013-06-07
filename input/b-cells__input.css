@@ -1,0 +1,27 @@
+.b-cells__input
+{
+    height: 13px;
+
+    padding: 3px 5px;
+    margin:  3px 0 0 0;
+
+    background:   #FAFAFA;
+    border-color: #B1B1B1;
+    border-style: solid;
+    border-width: 1px 0;
+}
+
+.b-cells__input:focus,
+.b-cells__input_is_active
+{
+    background: #FFF;
+}
+
+.b-cells__input:focus
+{
+    outline-width: 0;
+
+    -webkit-box-shadow: 0 1px 1px #CFCFCF inset, 0 0 2px #FFD94F, 0 0 2px #FFD94F, 0 0 3px #FFD94F;
+    -moz-box-shadow:    0 1px 1px #CFCFCF inset, 0 0 2px #FFD94F, 0 0 2px #FFD94F, 0 0 3px #FFD94F;
+    box-shadow:         0 1px 1px #CFCFCF inset, 0 0 2px #FFD94F, 0 0 2px #FFD94F, 0 0 3px #FFD94F;
+}

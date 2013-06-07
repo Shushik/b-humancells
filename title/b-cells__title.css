@@ -1,0 +1,9 @@
+.b-cells__title
+{
+    font-weight: bold;
+
+    white-space: nowrap;
+
+    padding:  3px 5px 0 5px;
+    margin:   0 10px 0 0;
+}

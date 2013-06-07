@@ -1,0 +1,9 @@
+.b-cells__total
+{
+    font-size: 8px;
+
+    line-height: 10px;
+    white-space: nowrap;
+
+    padding: 0 5px;
+}
