@@ -1,25 +1,16 @@
-.b-cells__sort
+.b-humancells__sort
 {
     position: relative;
 
     height: 0;
 }
 
-.b-cells__sort .b-cells__asc,
-.b-cells__sort .b-cells__desc
+.b-humancells__sort .b-humancells__asc,
+.b-humancells__sort .b-humancells__desc
 {
+    cursor:   pointer;
     position: absolute;
     right:    5px;
-
-/*     padding: 3px 0; */
-}
-
-.b-cells__sort .b-cells__asc:before,
-.b-cells__sort .b-cells__desc:before
-{
-    content: '';
-    cursor:  pointer;
-    display: block;
 
     width:  7px;
     height: 4px;
@@ -27,17 +18,14 @@
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAcAAAAHCAYAAADEUlfTAAAANElEQVR42nWOsQ0AMAjD+lP+vy1FHTCUdvAQOREs24kkB5m7AGQXFBCTs/oV3jevhyjUvAGlb2OdaiEXlwAAAABJRU5ErkJggg==');
 }
 
-.b-cells__sort .b-cells__asc
+.b-humancells__sort .b-humancells__asc
 {
     top: 8px;
-}
 
-.b-cells__sort .b-cells__asc:before
-{
     background-position: 0 -3px;
 }
 
-.b-cells__sort .b-cells__desc
+.b-humancells__sort .b-humancells__desc
 {
     top: 2px;
 }

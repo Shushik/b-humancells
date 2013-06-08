@@ -1,0 +1,53 @@
+.b-humancells__head
+{
+    border-color:   #B1B1B1;
+    border-style:   solid;
+    border-width:   1px 1px 0 1px;
+    border-spacing: 0;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing:    border-box;
+    box-sizing:         border-box;
+}
+
+.b-humancells__head .b-humancells__cell
+{
+    font-family: Verdana, Arial, sans-serif;
+
+    font-size: 9px;
+
+    line-height: 11px;
+
+    padding: 0;
+
+    background:   #E4E8ED;
+    border-color: #E4E8ED #B1B1B1 #E4E8ED #FFF;
+    border-style: solid;
+    border-width: 0 1px;
+}
+
+.b-humancells__head .b-humancells__cell_is_ordered-by-asc,
+.b-humancells__head .b-humancells__cell_is_ordering-by-asc,
+.b-humancells__head .b-humancells__cell_is_ordered-by-desc,
+.b-humancells__head .b-humancells__cell_is_ordering-by-desc
+{
+    background-color: #D8DBDD;
+}
+
+.b-humancells__head .b-humancells__cell_is_ordered-by-asc .b-humancells__asc,
+.b-humancells__head .b-humancells__cell_is_ordering-by-asc .b-humancells__asc,
+.b-humancells__head .b-humancells__cell_is_ordered-by-desc .b-humancells__desc,
+.b-humancells__head .b-humancells__cell_is_ordering-by-desc .b-humancells__desc
+{
+    visibility: hidden;
+}
+
+.b-humancells__head .b-humancells__cell:first-child
+{
+    border-left-width: 0;
+}
+
+.b-humancells__head .b-humancells__cell:last-child
+{
+    border-right-width: 0;
+}

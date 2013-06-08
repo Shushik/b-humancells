@@ -1,4 +1,4 @@
-.b-cells__input
+.b-humancells__input
 {
     height: 13px;
 
@@ -11,13 +11,13 @@
     border-width: 1px 0;
 }
 
-.b-cells__input:focus,
-.b-cells__input_is_active
+.b-humancells__input:focus,
+.b-humancells__input_is_active
 {
     background: #FFF;
 }
 
-.b-cells__input:focus
+.b-humancells__input:focus
 {
     outline-width: 0;
 

@@ -1,4 +1,4 @@
-.b-cells_are_ready .b-cells__head
+.b-humancells_are_ready .b-humancells__head
 {
     position: absolute;
     top:      0;
@@ -8,7 +8,7 @@
     table-layout: fixed;
 }
 
-.b-cells_are_ready .b-cells__body
+.b-humancells_are_ready .b-humancells__body
 {
     position: relative;
 
@@ -17,7 +17,7 @@
     border-top-width: 0;
 }
 
-.b-cells_are_ready .b-cells__raws
+.b-humancells_are_ready .b-humancells__raws
 {
     display: none;
 }

@@ -1,4 +1,4 @@
-.b-cells__body
+.b-humancells__body
 {
     position: relative;
     z-index:  1;
@@ -11,7 +11,7 @@
     box-sizing:         border-box;
 }
 
-.b-cells__body .b-cells__head
+.b-humancells__body .b-humancells__head
 {
     position: static;
 
@@ -19,22 +19,22 @@
     border-right-width: 0;
 }
 
-.b-cells__body .b-cells__row
+.b-humancells__body .b-humancells__row
 {
     background: #FAFAFA;
 }
 
-.b-cells__body .b-cells__row_is_off
+.b-humancells__body .b-humancells__row_is_off
 {
     display: none;
 }
 
-.b-cells__body .b-cells__row_is_odd
+.b-humancells__body .b-humancells__row_is_odd
 {
     background: #F1F4F7;
 }
 
-.b-cells__body .b-cells__cell
+.b-humancells__body .b-humancells__cell
 {
     font-size: 13px;
 
@@ -47,18 +47,18 @@
     border-width: 1px;
 }
 
-.b-cells__body .b-cells__row_is_odd .b-cells__cell
+.b-humancells__body .b-humancells__row_is_odd .b-humancells__cell
 {
     border-right-color: #F1F4F7;
     border-left-color:  #F1F4F7;
 }
 
-.b-cells__body .b-cells__cell:first-child
+.b-humancells__body .b-humancells__cell:first-child
 {
     border-left-width: 0;
 }
 
-.b-cells__body .b-cells__cell:last-child
+.b-humancells__body .b-humancells__cell:last-child
 {
     border-right-width: 0;
 }

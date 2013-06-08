@@ -94,7 +94,7 @@ function
     HumanCells.prototype._setup4dom = function() {
         // Create the table header DOM
         this._dom.head = document.createElement('table');
-        this._dom.head.className = 'b-cells__head';
+        this._dom.head.className = 'b-humancells__head';
 
         // Get the table body DOM
         this._dom.body = this._conf.dom_body ?
@@ -109,7 +109,7 @@ function
         this._dom.raws = this._conf.dom_head ?
                          this._conf.dom_head :
                          this._dom.body.getElementsByTagName('tr')[0];
-        this._dom.raws.className = 'b-cells__raws';
+        this._dom.raws.className = 'b-humancells__raws';
 
         // Insert the table header
         this._dom.self.
@@ -152,15 +152,15 @@ function
             params  = null;
 
         // Set the BEM classes
-        asc.className   = 'b-cells__asc';
-        col.className   = 'b-cells__col';
-        row.className   = 'b-cells__head';
-        cell.className  = 'b-cells__cell';
-        desc.className  = 'b-cells__desc';
-        sort.className  = 'b-cells__sort';
-        input.className = 'b-cells__input';
-        title.className = 'b-cells__title';
-        total.className = 'b-cells__total';
+        asc.className   = 'b-humancells__asc';
+        col.className   = 'b-humancells__col';
+        row.className   = 'b-humancells__head';
+        cell.className  = 'b-humancells__cell';
+        desc.className  = 'b-humancells__desc';
+        sort.className  = 'b-humancells__sort';
+        input.className = 'b-humancells__input';
+        title.className = 'b-humancells__title';
+        total.className = 'b-humancells__total';
 
         // Set other attributes
         input.setAttribute('contenteditable', 'true');
@@ -406,7 +406,7 @@ function
             node  = event.target,
             code  = 0,
             where = '',
-            rexp  = /^b-cells(__(asc|desc|input))?[\s\S]*/g;
+            rexp  = /^b-humancells(__(asc|desc|input))?[\s\S]*/g;
 
         // Target
         if (!node) {
@@ -518,7 +518,7 @@ function
         // 
         this._dom.head.style.width = off1.width + 'px';
         this._dom.head.appendChild(body);
-        this._dom.tmp.className = 'b-cells__row';
+        this._dom.tmp.className = 'b-humancells__row';
         body.appendChild(this._dom.tmp);
         off0 = this._offset(this._dom.head);
         delete this._dom.tmp;
@@ -533,7 +533,7 @@ function
 
         // 
         this.ready = true;
-        this._dom.self.className += ' b-cells_are_ready';
+        this._dom.self.className += ' b-humancells_are_ready';
     }
 
     /**
@@ -575,7 +575,7 @@ function
         // Create the temporary object with the rows collection
         if (!this._dom.rows) {
             this._dom.rows = {};
-            this._dom.rows.rows = this._dom.body.querySelectorAll('.b-cells__row');
+            this._dom.rows.rows = this._dom.body.querySelectorAll('.b-humancells__row');
             this._dom.rows.step = 100;
             this._dom.rows.loop = 0;
             this._dom.rows.all  = this._dom.rows.rows.length;
@@ -607,11 +607,24 @@ function
 
                 //
                 if (!isNaN(num)) {
-                    this._mem.cols[it1].type = 'number';
+                    if (it0 == 0) {
+                        this._mem.cols[it1].type = 'number';
+
+                        this._mem.cols[it1].body.className += ' b-humancells__col_type_number';
+                        this._mem.cols[it1].head.className += ' b-humancells__col_type_number';
+                    }
+
                     this._mem.cols[it1].avg += num;
+
                     mem.cells[it1] = num;
                 } else {
-                    this._mem.cols[it1].type = 'string';
+                    if (it0 == 0) {
+                        this._mem.cols[it1].type = 'string';
+    
+                        this._mem.cols[it1].body.className += ' b-humancells__col_type_string';
+                        this._mem.cols[it1].head.className += ' b-humancells__col_type_string';
+                    }
+
                     mem.cells[it1] = txt;
                 }
 
@@ -625,9 +638,9 @@ function
 
             // Draw «zebra»
             if (!(it0 % 2)) {
-                row.className = 'b-cells__row b-cells__row_is_odd';
+                row.className = 'b-humancells__row b-humancells__row_is_odd';
             } else {
-                row.className = 'b-cells__row b-cells__row_is_even';
+                row.className = 'b-humancells__row b-humancells__row_is_even';
             }
 
             it0++;
@@ -674,7 +687,7 @@ function
         if (this._mem.cols[col]) {
             if (this._order.col) {
                 this._mem.cols[this._order.col].
-                cell.className = 'b-cells__cell';
+                cell.className = 'b-humancells__cell';
             }
 
             this._order.offset = this._mem.cols[col].offset;
@@ -713,8 +726,8 @@ function
         //
         if (this._order.type != 'default') {
             this._mem.cols[this._order.col].
-            cell.className = 'b-cells__cell ' +
-                             'b-cells__cell_is_ordering-by-' +
+            cell.className = 'b-humancells__cell ' +
+                             'b-humancells__cell_is_ordering-by-' +
                              this._order.type;
         }
 
@@ -731,9 +744,9 @@ function
             // Draw «zebra»
             if (row.active) {
                 if (!(it1 % 2)) {
-                    row.node.className = 'b-cells__row b-cells__row_is_odd';
+                    row.node.className = 'b-humancells__row b-humancells__row_is_odd';
                 } else {
-                    row.node.className = 'b-cells__row b-cells__row_is_even';
+                    row.node.className = 'b-humancells__row b-humancells__row_is_even';
                 }
 
                 it1++;
@@ -745,8 +758,8 @@ function
         // Finish the visual processing
         if (this._order.type != 'default') {
             this._mem.cols[this._order.col].
-            cell.className = 'b-cells__cell ' +
-                             'b-cells__cell_is_ordered-by-' +
+            cell.className = 'b-humancells__cell ' +
+                             'b-humancells__cell_is_ordered-by-' +
                              this._order.type;
         }
     }
@@ -884,7 +897,7 @@ function
             if (off) {
                 // Hide row
                 row.active = false;
-                row.node.className = 'b-cells__row b-cells__row_is_off';
+                row.node.className = 'b-humancells__row b-humancells__row_is_off';
             } else {
                 it1 = 0;
 
@@ -893,9 +906,9 @@ function
 
                 // Draw «zebra»
                 if (!(it2 % 2)) {
-                    row.node.className = 'b-cells__row b-cells__row_is_odd';
+                    row.node.className = 'b-humancells__row b-humancells__row_is_odd';
                 } else {
-                    row.node.className = 'b-cells__row b-cells__row_is_even';
+                    row.node.className = 'b-humancells__row b-humancells__row_is_even';
                 }
 
                 // Recount the totals
@@ -911,7 +924,7 @@ function
 
                     // Count avg for column
                     if (col.type == 'number') {
-                        if (it0 == 0) {
+                        if (it2 == 0) {
                             col.avg = row.cells[it1];
                         } else {
                             col.avg += row.cells[it1];
@@ -1087,9 +1100,9 @@ function
                     this._mem.cols[it0].filter = val;
 
                     if (val !== '') {
-                        input.className = 'b-cells__input b-cells__input_is_active';
+                        input.className = 'b-humancells__input b-humancells__input_is_active';
                     } else {
-                        input.className = 'b-cells__input';
+                        input.className = 'b-humancells__input';
                     }
 
                     this.filter(this._mem.cols[it0].alias, val);
@@ -1147,7 +1160,7 @@ function
             col = this._mem.cols[it0];
 
             if (col.cell == node) {
-                order = event.target.className.replace('b-cells__', '');
+                order = event.target.className.replace('b-humancells__', '');
 
                 this.sort(col.alias, order);
                 break;
