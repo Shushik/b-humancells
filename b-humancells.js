@@ -259,7 +259,6 @@ function
         this._dom.head.appendChild(hcols);
         this._dom.body.appendChild(bcols);
         this._dom.body.insertBefore(bcols, raws[0].parentNode.parentNode);
-        this._dom.body.style.tableLayout = 'fixed';
         raws[0].parentNode.parentNode.insertBefore(row, raws[0].parentNode);
     }
 
@@ -369,9 +368,11 @@ function
                 'focus',
                 'keyup',
                 'mousedown',
+                'mousemove',
                 'touchstart'
             ];
 
+        // Choose the method to set the event handler
         if (document.addEventListener) {
             method = 'addEventListener';
         } else {
@@ -379,11 +380,12 @@ function
             prefix = 'on';
         }
 
-        //
+        // Set the document events handlers
         document[method](prefix + 'scroll', this._prox.route);
 
         it0 = events.length;
 
+        // Set the block events handlers
         while (it0-- > 0) {
             this._dom.self[method](prefix + events[it0], this._prox.route);
         }
@@ -1054,6 +1056,7 @@ function
                   document.documentElement.scrollTop :
                   document.body.scrollTop;
 
+/*         this._dom.head.style.top = 0; */
         if (pos > this._dom.from && pos < this._dom.till) {
             this._dom.head.style.top = (pos - this._dom.from) + 'px';
         } else {
@@ -1168,6 +1171,14 @@ function
         }
     }
 
+    HumanCells.prototype._mousemove4self = function() {
+        if (!this._scrolled) {
+            return true;
+        }
+
+        this._scroll();
+    }
+
     /**
      * Scroll event handler for the document
      *
@@ -1178,7 +1189,10 @@ function
      * @return {undefined}
      */
     HumanCells.prototype._scroll4document = function(event) {
-        this._scroll();
+        this._scrolled = true;
+
+        this._dom.head.style.top = 0;
+/*         this._scroll(); */
     }
 
     /**
