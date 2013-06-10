@@ -14,8 +14,7 @@
 function
     HumanCells(self, conf) {
         // Try to get the config
-        conf = conf || (self.onclick ? self.onclick() : null);
-        conf = conf || {};
+        conf = conf || (self.onclick ? self.onclick() : {});
 
         var
             al0 = '';
@@ -31,12 +30,21 @@ function
         }
 
         //
-        if (!conf.decimal_separator) {
-            this._conf.decimal_separator = ' ';
+        if (!conf.number_separator) {
+            this._conf.number_separator = ' ';
         }
 
-        // Start when the DOM is ready
-        window.addEventListener('DOMContentLoaded', this._prox.init);
+        //
+        if (conf.initialization_delay) {
+            delete this._conf.initialization_delay;
+        } else {
+            // Start when the DOM is ready
+            if (document.addEventListener) {
+                window.addEventListener('DOMContentLoaded', this._prox.init);
+            } else {
+                window.attachEvent('onDOMContentLoaded', this._prox.init);
+            }
+        }
     }
 
     /**
@@ -240,21 +248,45 @@ function
                 mem.cell  = cell.cloneNode();
                 mem.head  = col.cloneNode();
                 mem.sort  = sort.cloneNode(true);
-                mem.input = input.cloneNode();
-                mem.title = title.cloneNode();
-                mem.total = total.cloneNode();
 
-                // Set values and attributes
+                //
+                mem.title = title.cloneNode();
                 mem.title.innerHTML = val;
-                mem.total.innerHTML = params.total ?
-                                      params.total :
-                                      '&nbsp;';
+
+                //
+                if (!this._conf.inputs_off) {
+                    mem.input = input.cloneNode();
+
+                    if (params.input_off) {
+                        mem.input.removeAttribute('contenteditable');
+                    }
+                }
+
+                //
+                if (!this._conf.totals_off) {
+                    mem.total = total.cloneNode();
+                    mem.total.innerHTML = params.total && !params.total_off ?
+                                          params.total :
+                                          '&nbsp;';
+                }
 
                 // Save the column DOM nodes
-                mem.cell.appendChild(mem.sort);
+                if (!params.order_off && !this._conf.orders_off) {
+                    mem.cell.appendChild(mem.sort);
+                }
+
                 mem.cell.appendChild(mem.title);
-                mem.cell.appendChild(mem.total);
-                mem.cell.appendChild(mem.input);
+
+                //
+                if (!this._conf.totals_off) {
+                    mem.cell.appendChild(mem.total);
+                }
+
+                //
+                if (!this._conf.inputs_off) {
+                    mem.cell.appendChild(mem.input);
+                }
+
                 row.appendChild(mem.cell);
                 bcols.appendChild(mem.body);
                 hcols.appendChild(mem.head);
@@ -987,6 +1019,10 @@ function
      * @return {HumanCells}
      */
     HumanCells.prototype.total = function() {
+        if (this._conf.totals_off) {
+            return;
+        }
+
         // Run the table parsing
         this._timers.total = setTimeout(
             this._prox.total,
@@ -1031,7 +1067,7 @@ function
                 }
 
                 // Save the result
-                if (col.real) {
+                if (col.real && col.total) {
                     col.total.innerHTML = col.template.
                                           replace(
                                               /\{% avg %\}/g,
@@ -1070,7 +1106,7 @@ function
     HumanCells.prototype.civilize = function(num) {
         return HumanCells.civilize(
             HumanCells.round(num),
-            this._conf.decimal_separator
+            this._conf.number_separator
         );
     }
 

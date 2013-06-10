@@ -5,19 +5,23 @@
     padding: 3px 5px;
     margin:  3px 0 0 0;
 
-    background:   #FAFAFA;
     border-color: #B1B1B1;
     border-style: solid;
     border-width: 1px 0;
 }
 
-.b-humancells__input:focus,
-.b-humancells__input_is_active
+.b-humancells__input[contenteditable]
+{
+    background: #FAFAFA;
+}
+
+.b-humancells__input[contenteditable]:focus,
+.b-humancells__input_is_active[contenteditable]
 {
     background: #FFF;
 }
 
-.b-humancells__input:focus
+.b-humancells__input[contenteditable]:focus
 {
     outline-width: 0;
 
