@@ -126,30 +126,28 @@ function
      */
     HumanCells.prototype._setup4mem = function() {
         var
-            ch0     = 0,
-            ch1     = 0,
-            it0     = 0,
-            it1     = 0,
-            ln0     = 0,
-            al0     = '',
-            al1     = '',
-            val     = '',
-            formula = '',
-            asc     = document.createElement('div'),
-            col     = document.createElement('col'),
-            mem     = null,
-            raw     = null,
-            row     = document.createElement('tr'),
-            desc    = document.createElement('div'),
-            cell    = document.createElement('td'),
-            raws    = null,
-            sort    = document.createElement('div'),
-            bcols   = document.createElement('colgroup'),
-            hcols   = document.createElement('colgroup'),
-            input   = document.createElement('div'),
-            title   = document.createElement('div'),
-            total   = document.createElement('div'),
-            params  = null;
+            real   = false,
+            it0    = 0,
+            it1    = 0,
+            ln0    = 0,
+            ln1    = 0,
+            al0    = '',
+            val    = '',
+            asc    = document.createElement('div'),
+            col    = document.createElement('col'),
+            mem    = null,
+            raw    = null,
+            row    = document.createElement('tr'),
+            desc   = document.createElement('div'),
+            cell   = document.createElement('td'),
+            raws   = null,
+            sort   = document.createElement('div'),
+            bcols  = document.createElement('colgroup'),
+            hcols  = document.createElement('colgroup'),
+            input  = document.createElement('div'),
+            title  = document.createElement('div'),
+            total  = document.createElement('div'),
+            params = null;
 
         // Set the BEM classes
         asc.className   = 'b-humancells__asc';
@@ -172,16 +170,27 @@ function
         this._mem.rows = [];
 
         // Get the header`s td
-        raws = this._dom.raws.getElementsByTagName('td');
+        raws = Array.prototype.
+               slice.call(this._dom.raws.getElementsByTagName('td')).
+               concat(this._dom.raws.onclick ? this._dom.raws.onclick() : []);
         ln0  = raws.length;
 
         // Iterate through the DOM columns to create
         // their memory copies
         while (it0 < ln0) {
             raw    = raws[it0];
-            val    = raw.textContent;
-            params = raw.onclick();
-            params = params || {};
+            real   = raw instanceof HTMLTableCellElement ?
+                     true :
+                     false;
+
+            //
+            if (real) {
+                params = raw.onclick ? raw.onclick() : {};
+                val    = raw.textContent;
+            } else {
+                params = raw;
+                val    = raw.title;
+            }
 
             // Get the column id
             if (raw.id) {
@@ -192,18 +201,19 @@ function
                 al0 = val.substring(0, 30);
             }
 
+            // Create an ID for the column
             al0 = al0.
                   replace(/(^ *| *$)/g, '').
                   replace(/[^\w\d_]/g, '_');
 
             // Create the memory column object
             mem = this._mem.cols[al0] = this._mem.cols[it0] = {};
+            mem.real     = real;
             mem.avg      = 0;
             mem.val      = 0;
             mem.rows     = 0;
             mem.offset   = it0;
             mem.alias    = al0;
-            mem.filter   = '';
             mem.method   = params.method ?
                            params.method :
                            null;
@@ -223,29 +233,32 @@ function
                            params.template :
                            '{% avg %}';
 
-            // Create the column DOM nodes
-            mem.body  = col.cloneNode();
-            mem.cell  = cell.cloneNode();
-            mem.head  = col.cloneNode();
-            mem.sort  = sort.cloneNode(true);
-            mem.input = input.cloneNode();
-            mem.title = title.cloneNode();
-            mem.total = total.cloneNode();
+            // Create the column DOM
+            if (real) {
+                // Create the column DOM nodes
+                mem.body  = col.cloneNode();
+                mem.cell  = cell.cloneNode();
+                mem.head  = col.cloneNode();
+                mem.sort  = sort.cloneNode(true);
+                mem.input = input.cloneNode();
+                mem.title = title.cloneNode();
+                mem.total = total.cloneNode();
 
-            // Set values and attributes
-            mem.title.innerHTML = val;
-            mem.total.innerHTML = params.total ?
-                                  params.total :
-                                  '&nbsp;';
+                // Set values and attributes
+                mem.title.innerHTML = val;
+                mem.total.innerHTML = params.total ?
+                                      params.total :
+                                      '&nbsp;';
 
-            // Save the column DOM nodes
-            mem.cell.appendChild(mem.sort);
-            mem.cell.appendChild(mem.title);
-            mem.cell.appendChild(mem.total);
-            mem.cell.appendChild(mem.input);
-            row.appendChild(mem.cell);
-            bcols.appendChild(mem.body);
-            hcols.appendChild(mem.head);
+                // Save the column DOM nodes
+                mem.cell.appendChild(mem.sort);
+                mem.cell.appendChild(mem.title);
+                mem.cell.appendChild(mem.total);
+                mem.cell.appendChild(mem.input);
+                row.appendChild(mem.cell);
+                bcols.appendChild(mem.body);
+                hcols.appendChild(mem.head);
+            }
 
             // Insert the column aliase into order arrays
             this._order.count[it0] = al0;
@@ -472,31 +485,36 @@ function
             body  = document.createElement('tbody'),
             style = null;
 
+        //
         while (it0 < ln0) {
             col = this._mem.cols[it0];
-            stl = col.cell.currentStyle ?
-                  col.cell.currentStyle :
-                  window.getComputedStyle(col.cell, null);
 
-            brw = stl.borderRightWidth ?
-                  stl.borderRightWidth.replace('px', '') - 0 :
-                  0;
-            blw = stl.borderLeftWidth ?
-                  stl.borderLeftWidth.replace('px', '') - 0 :
-                  0;
-            prw = stl.paddingRight ?
-                  stl.paddingRight.replace('px', '') - 0 :
-                  0;
-            plw = stl.paddingLeft ?
-                  stl.paddingLeft.replace('px', '') - 0 :
-                  0;
+            //
+            if (col.real) {
+                stl = col.cell.currentStyle ?
+                      col.cell.currentStyle :
+                      window.getComputedStyle(col.cell, null);
 
-            // Get the column offset width
-            w0 = this._offset(col.cell, this._dom.self).width;
+                brw = stl.borderRightWidth ?
+                      stl.borderRightWidth.replace('px', '') - 0 :
+                      0;
+                blw = stl.borderLeftWidth ?
+                      stl.borderLeftWidth.replace('px', '') - 0 :
+                      0;
+                prw = stl.paddingRight ?
+                      stl.paddingRight.replace('px', '') - 0 :
+                      0;
+                plw = stl.paddingLeft ?
+                      stl.paddingLeft.replace('px', '') - 0 :
+                      0;
 
-            // Save the offset width
-            col.head.style.width = w0 + 'px';
-            col.body.style.width = w0 + 'px';
+                // Get the column offset width
+                w0 = this._offset(col.cell, this._dom.self).width;
+
+                // Save the offset width
+                col.head.style.width = w0 + 'px';
+                col.body.style.width = w0 + 'px';
+            }
 
             it0++;
         }
@@ -523,7 +541,10 @@ function
         this._dom.tmp.className = 'b-humancells__row';
         body.appendChild(this._dom.tmp);
         off0 = this._offset(this._dom.head);
+
+        //
         delete this._dom.tmp;
+        delete this._dom.raws;
 
         // 
         this._dom.body.style.top   = off0.height + 'px';
@@ -562,10 +583,11 @@ function
      */
     HumanCells.prototype._parse = function() {
         var
+            real = false,
             it0  = 0,
             it1  = 0,
             ln0  = 0,
-            ln1  = this._order.given.length,
+            ln1  = 0,
             num  = 0,
             txt  = '',
             col  = null,
@@ -583,7 +605,7 @@ function
             this._dom.rows.all  = this._dom.rows.rows.length;
         }
 
-        //
+        // 
         raws = this._dom.rows.rows;
         it0  = this._dom.rows.loop * this._dom.rows.step;
         ln0  = it0 + this._dom.rows.step;
@@ -591,29 +613,35 @@ function
 
         // Iterate through trs
         while (it0 < ln0) {
-            it1 = 0;
             row = raws[it0];
-            raw = row.getElementsByTagName('td');
+            raw = Array.prototype.
+                  slice.call(row.getElementsByTagName('td'));
+            raw = raw.concat(row.onclick ? row.onclick() : []);
             mem = {
                 active : true,
                 offset : it0,
                 node   : row,
                 cells  : []
             };
+            it1 = 0;
+            ln1 = raw.length;
 
             // Iterate through tds
             while (it1 < ln1) {
-                col = raw[it1];
-                txt = col.textContent;
-                num = txt - 0;
+                col  = raw[it1];
+                real = this._mem.cols[it1].real;
+                txt  = real ? col.textContent : col;
+                num  = txt - 0;
 
                 //
                 if (!isNaN(num)) {
                     if (it0 == 0) {
                         this._mem.cols[it1].type = 'number';
 
-                        this._mem.cols[it1].body.className += ' b-humancells__col_type_number';
-                        this._mem.cols[it1].head.className += ' b-humancells__col_type_number';
+                        if (real) {
+                            this._mem.cols[it1].body.className += ' b-humancells__col_type_number';
+                            this._mem.cols[it1].head.className += ' b-humancells__col_type_number';
+                        }
                     }
 
                     this._mem.cols[it1].avg += num;
@@ -623,8 +651,10 @@ function
                     if (it0 == 0) {
                         this._mem.cols[it1].type = 'string';
     
-                        this._mem.cols[it1].body.className += ' b-humancells__col_type_string';
-                        this._mem.cols[it1].head.className += ' b-humancells__col_type_string';
+                        if (real) {
+                            this._mem.cols[it1].body.className += ' b-humancells__col_type_string';
+                            this._mem.cols[it1].head.className += ' b-humancells__col_type_string';
+                        }
                     }
 
                     mem.cells[it1] = txt;
@@ -1001,25 +1031,27 @@ function
                 }
 
                 // Save the result
-                col.total.innerHTML = col.template.
-                                      replace(
-                                          /\{% avg %\}/g,
-                                          col.civilize ?
-                                          col.civilize(col.avg) :
-                                          this.civilize(col.avg)
-                                      ).
-                                      replace(
-                                          /\{% val %\}/g,
-                                          col.civilize ?
-                                          col.civilize(col.val) :
-                                          this.civilize(col.val)
-                                      ).
-                                      replace(
-                                          /\{% rows %\}/g,
-                                          col.civilize ?
-                                          col.civilize(col.rows) :
-                                          this.civilize(col.rows)
-                                      );
+                if (col.real) {
+                    col.total.innerHTML = col.template.
+                                          replace(
+                                              /\{% avg %\}/g,
+                                              col.civilize ?
+                                              col.civilize(col.avg) :
+                                              this.civilize(col.avg)
+                                          ).
+                                          replace(
+                                              /\{% val %\}/g,
+                                              col.civilize ?
+                                              col.civilize(col.val) :
+                                              this.civilize(col.val)
+                                          ).
+                                          replace(
+                                              /\{% rows %\}/g,
+                                              col.civilize ?
+                                              col.civilize(col.rows) :
+                                              this.civilize(col.rows)
+                                          );
+                }
             }
 
             it0++;
