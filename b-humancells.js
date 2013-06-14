@@ -55,14 +55,14 @@ function
      */
     HumanCells.prototype.init = function() {
         // Enable global variables
-        this.ready   = false;
-        this.parsed  = false;
-        this.ungled  = false;
-        this._timer  = 0;
-        this._mem    = {};
-        this._move   = {};
-        this._order  = {};
-        this._timers = {};
+        this.ready    = false;
+        this.parsed   = false;
+        this.thinking = false;
+        this._timer   = 0;
+        this._mem     = {};
+        this._move    = {};
+        this._order   = {};
+        this._timers  = {};
 
         // Setup the table instance
         this._setup();
@@ -165,6 +165,8 @@ function
 
         // Cache DOM nodes for the column
         if (real) {
+            this._order.real++;
+
             // Raw cell
             mem.cell = raw;
             mem.cell.className = 'b-humancells__cell';
@@ -220,6 +222,9 @@ function
      * @return {undefined}
      */
     HumanCells.prototype._setup4dom = function() {
+        var
+            node = null;
+
         // Create the table header DOM
         this._dom.head = document.createElement('table');
         this._dom.head.className = 'b-humancells__head';
@@ -229,11 +234,14 @@ function
                          this._conf.dom_body :
                          this._dom.self.getElementsByTagName('table')[0];
 
-        // 
-        this._dom.from = 0;
-        this._dom.till = 0;
+        // Create the spinner DOM
+        this._dom.wait = document.createElement('tr');
+        this._dom.wait.className = 'b-humancells__wait';
+        node = document.createElement('td');
+        node.className = 'b-humancells__cell';
+        this._dom.wait.appendChild(node);
 
-        // 
+        // Get the raw headers
         this._dom.raws = this._conf.dom_head ?
                          this._conf.dom_head :
                          this._dom.body.getElementsByTagName('tr')[0];
@@ -242,7 +250,7 @@ function
         // Insert the table header
         this._dom.self.appendChild(this._dom.head);
 
-        //
+        // Create the scroll limiters
         this._move.from = {};
         this._move.till = {};
     }
@@ -365,8 +373,8 @@ function
      * @return {undefined}
      */
     HumanCells.prototype._setup4order = function() {
+        this._order.real   = 0;
         this._order.offset = 0;
-        this._order.row    = 0;
         this._order.col    = '';
         this._order.type   = 'asc';
         this._order.count  = [];
@@ -531,8 +539,10 @@ function
         this._dom.body.style.width = off.width + 'px';
 
         node = document.createElement('tbody');
-        node.appendChild(this._dom.raws);
         this._dom.head.appendChild(node);
+        this._dom.wait.firstChild.setAttribute('colspan', this._order.real);
+        node.appendChild(this._dom.raws);
+        node.appendChild(this._dom.wait);
 
         off = this._offset(this._dom.head);
         this._move.till.top -= off.height;
@@ -541,6 +551,10 @@ function
 
         this._dom.raws.className = 'b-humancells__row';
         this._dom.self.className = 'b-humancells b-humancells_are_ready';
+
+        this.ready = true;
+
+        this.wait();
 
         // 
         delete this._dom.raws;
@@ -583,7 +597,6 @@ function
             off     = null,
             raw     = null,
             row     = null,
-            date    = null,
             raws    = null,
             body    = floated ? document.createElement('tbody') : null,
             cell    = null,
@@ -678,7 +691,7 @@ function
                     this._conf.order_type ?
                     this._conf.order_type :
                     'asc'
-                )
+                );
             }
 
             this.total();
@@ -697,6 +710,8 @@ function
         if (this._timers.sort) {
             clearTimeout(this._timers.sort);
         }
+
+        this.wait();
 
         //
         if (this._mem.cols[col]) {
@@ -731,7 +746,7 @@ function
                    getElementsByTagName('tbody')[0],
             raws = this._dom.raws;
 
-        // Scroll to the top
+        // Scroll to the top and run the spinner
         (
             document.documentElement ?
             document.documentElement :
@@ -777,6 +792,8 @@ function
                              'b-humancells__cell_is_ordered-by-' +
                              this._order.type;
         }
+
+        this.unwait();
     }
 
 
@@ -852,6 +869,8 @@ function
         if (this._timers.filter) {
             clearTimeout(this._timers.filter);
         }
+
+        this.wait();
 
         //
         this._mem.cols[col].filter = word;
@@ -1043,6 +1062,34 @@ function
 
             it0++;
         }
+
+        this.unwait();
+    }
+
+    /**
+     * Turn the spinner on
+     *
+     * @private
+     *
+     * @this   {HumanCells}
+     * @return {string}
+     */
+    HumanCells.prototype.wait = function() {
+        this.thinking = true;
+        this._dom.self.className += ' b-humancells_are_thinking';
+    }
+
+    /**
+     * Turn the spinner off
+     *
+     * @private
+     *
+     * @this   {HumanCells}
+     * @return {string}
+     */
+    HumanCells.prototype.unwait = function() {
+        this.thinking = false;
+        this._dom.self.className = 'b-humancells b-humancells_are_ready';
     }
 
     /**
@@ -1119,12 +1166,6 @@ function
             while (it0-- > 0) {
                 if (this._mem.cols[it0].input == input) {
                     this._mem.cols[it0].filter = val;
-
-                    if (val !== '') {
-                        input.className = 'b-humancells__input b-humancells__input_is_active';
-                    } else {
-                        input.className = 'b-humancells__input';
-                    }
 
                     this.filter(this._mem.cols[it0].alias, val);
 
