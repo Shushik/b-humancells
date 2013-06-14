@@ -554,6 +554,7 @@ function
 
         this.ready = true;
 
+        this._scroll();
         this.wait();
 
         // 
@@ -711,10 +712,10 @@ function
             clearTimeout(this._timers.sort);
         }
 
-        this.wait();
-
         //
         if (this._mem.cols[col]) {
+            this.wait();
+
             if (this._order.col) {
                 this._mem.cols[this._order.col].
                 cell.className = 'b-humancells__cell';
@@ -757,7 +758,7 @@ function
         if (this._order.type != 'default') {
             this._mem.cols[this._order.col].
             cell.className = 'b-humancells__cell ' +
-                             'b-humancells__cell_is_ordering-by-' +
+                             'b-humancells__cell_is_ordered-by-' +
                              this._order.type;
         }
 
@@ -783,14 +784,6 @@ function
             }
 
             it0++;
-        }
-
-        // Finish the visual processing
-        if (this._order.type != 'default') {
-            this._mem.cols[this._order.col].
-            cell.className = 'b-humancells__cell ' +
-                             'b-humancells__cell_is_ordered-by-' +
-                             this._order.type;
         }
 
         this.unwait();
