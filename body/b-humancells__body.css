@@ -1,20 +1,13 @@
 .b-humancells__body
 {
-    position: relative;
-    z-index:  1;
-
-    border:         #B1B1B1 solid 1px;
+    border-color:   #B1B1B1;
+    border-style:   solid;
+    border-width:   1px;
     border-spacing: 0;
-
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing:    border-box;
-    box-sizing:         border-box;
 }
 
 .b-humancells__body .b-humancells__head
 {
-    position: static;
-
     border-left-width: 0;
     border-right-width: 0;
 }
@@ -45,6 +38,10 @@
     border-color: #FFF #FAFAFA #EDEDED #FAFAFA;
     border-style: solid;
     border-width: 1px;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing:    border-box;
+    box-sizing:         border-box;
 }
 
 .b-humancells__body .b-humancells__row_is_odd .b-humancells__cell

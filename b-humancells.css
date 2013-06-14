@@ -1,7 +1,9 @@
 @import "_are/b-humancells_are_ready.css";
 @import "body/b-humancells__body.css";
+@import "cell/_wrap/b-humancells__cell_wrap_no.css";
 @import "head/b-humancells__head.css";
 @import "sort/b-humancells__sort.css";
+@import "aside/b-humancells__aside.css";
 @import "input/b-humancells__input.css";
 @import "title/b-humancells__title.css";
 @import "total/b-humancells__total.css";

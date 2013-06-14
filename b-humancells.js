@@ -57,15 +57,19 @@ function
         // Enable global variables
         this.ready   = false;
         this.parsed  = false;
+        this.ungled  = false;
         this._timer  = 0;
         this._mem    = {};
+        this._move   = {};
         this._order  = {};
         this._timers = {};
 
         // Setup the table instance
         this._setup();
         this._alive();
-        this._resize();
+
+        //
+        this._timers.resize = setTimeout(this._prox.resize, 0);
 
         // Parse the table
         if (this._conf.parsing_delay === undefined) {
@@ -92,6 +96,122 @@ function
     }
 
     /**
+     * Create the column object
+     *
+     * @private
+     *
+     * @this   {HumanCells}
+     * @param  {number}
+     * @param  {object|DOMNode}
+     * @return {object}
+     */
+    HumanCells.prototype._setup4col = function(pos, raw) {
+        var
+            real    = raw instanceof HTMLTableCellElement,
+            floated = false,
+            id      = '',
+            html    = real ? raw.innerHTML : '',
+            text    = !real ? raw.value : raw.textContent,
+            mem     = {},
+            node    = null,
+            params  = {};
+
+        // Get the column settings
+        if (!real) {
+            params = raw;
+        } else if (raw.onclick) {
+            params = raw.onclick();
+        }
+
+        // Get the column id
+        if (real && raw.id) {
+            mem.alias = id = raw.id;
+        } else if (params.alias) {
+            mem.alias = id = params.alias;
+        } else {
+            mem.alias = id = HumanCells.trim(text).
+                             replace(/[\n\r\t]/g, '').
+                             substring(0, 30);
+        }
+
+        // Create an ID for the column
+        id = id.replace(/[^\w\d_]/g, '_');
+
+        // Create the virtual column and set it`s main properties
+        mem = this._mem.cols[pos] = this._mem.cols[id] = {};
+        mem.real     = real;
+        mem.floated  = floated = (pos == 0 && params.floated != undefined ? true : false);
+        mem.avg      = 0;
+        mem.val      = 0;
+        mem.rows     = 0;
+        mem.offset   = pos;
+        mem.alias    = id;
+        mem.method   = params.method ? params.method : null;
+        mem.formula  = (
+                           params.formula ?
+                           params.formula :
+                           '{{ ' + id + '|avg }}'
+                       ).
+                       replace(
+                           /\{\{ ([\w\d_]*)\|(avg|val|rows) \}\}/g,
+                           'this._mem.cols.$1.$2'
+                       );
+        mem.civilize = params.civilize ? params.civilize : this._prox.civilize;
+        mem.template = params.template ? params.template : '{% avg %}';
+
+        // Insert the column alias into order arrays
+        this._order.count[pos] = id;
+        this._order.given[pos] = id;
+
+        // Cache DOM nodes for the column
+        if (real) {
+            // Raw cell
+            mem.cell = raw;
+            mem.cell.className = 'b-humancells__cell';
+            mem.cell.innerHTML = '';
+
+            // Order control
+            if (!params.order_off && !this._conf.orders_off) {
+                node = document.createElement('div');
+                node.className = 'b-humancells__sort';
+                node.innerHTML = '<div class="b-humancells__desc"></div>' +
+                                 '<div class="b-humancells__asc"></div>';
+                mem.cell.appendChild(node);
+            }
+
+            // Column title
+            node = mem.title = document.createElement('div');
+            node.className = 'b-humancells__title';
+            node.innerHTML = html;
+            mem.cell.appendChild(node);
+
+            // Column total line
+            if (!this._conf.totals_off) {
+                node = mem.total = document.createElement('div');
+                node.className = 'b-humancells__total';
+                node.innerHTML = !params.total_off && params.total_avg ?
+                                 params.total_avg :
+                                 '&nbsp;';
+                mem.cell.appendChild(node);
+            }
+
+            // Column filter control
+            if (!this._conf.inputs_off) {
+                node = mem.input = document.createElement('div');
+                node.className = 'b-humancells__input';
+
+                if (!params.input_off) {
+                    node.setAttribute('contenteditable', 'true');
+                }
+
+                mem.cell.appendChild(node);
+            }
+        }
+
+        return mem;
+    }
+
+    /**
      * Create and cache important DOM nodes
      *
      * @private
@@ -109,23 +229,26 @@ function
                          this._conf.dom_body :
                          this._dom.self.getElementsByTagName('table')[0];
 
-        //
+        // 
         this._dom.from = 0;
         this._dom.till = 0;
 
-        //
+        // 
         this._dom.raws = this._conf.dom_head ?
                          this._conf.dom_head :
                          this._dom.body.getElementsByTagName('tr')[0];
         this._dom.raws.className = 'b-humancells__raws';
 
         // Insert the table header
-        this._dom.self.
-        insertBefore(this._dom.head, this._dom.body);
+        this._dom.self.appendChild(this._dom.head);
+
+        //
+        this._move.from = {};
+        this._move.till = {};
     }
 
     /**
-     * Init main memory stacks
+     * Create the memory stacks
      *
      * @private
      *
@@ -134,50 +257,17 @@ function
      */
     HumanCells.prototype._setup4mem = function() {
         var
-            real   = false,
-            it0    = 0,
-            it1    = 0,
-            ln0    = 0,
-            ln1    = 0,
-            al0    = '',
-            val    = '',
-            asc    = document.createElement('div'),
-            col    = document.createElement('col'),
-            mem    = null,
-            raw    = null,
-            row    = document.createElement('tr'),
-            desc   = document.createElement('div'),
-            cell   = document.createElement('td'),
-            raws   = null,
-            sort   = document.createElement('div'),
-            bcols  = document.createElement('colgroup'),
-            hcols  = document.createElement('colgroup'),
-            input  = document.createElement('div'),
-            title  = document.createElement('div'),
-            total  = document.createElement('div'),
-            params = null;
-
-        // Set the BEM classes
-        asc.className   = 'b-humancells__asc';
-        col.className   = 'b-humancells__col';
-        row.className   = 'b-humancells__head';
-        cell.className  = 'b-humancells__cell';
-        desc.className  = 'b-humancells__desc';
-        sort.className  = 'b-humancells__sort';
-        input.className = 'b-humancells__input';
-        title.className = 'b-humancells__title';
-        total.className = 'b-humancells__total';
-
-        // Set other attributes
-        input.setAttribute('contenteditable', 'true');
-        sort.appendChild(desc);
-        sort.appendChild(asc);
+            it0  = 0,
+            ln0  = 0,
+            mem  = null,
+            raws = null;
 
         // Create the memory stacks
         this._mem.cols = {};
         this._mem.rows = [];
 
         // Get the header`s td
+        this._dom.raws.className = 'b-humancells__head';
         raws = Array.prototype.
                slice.call(this._dom.raws.getElementsByTagName('td')).
                concat(this._dom.raws.onclick ? this._dom.raws.onclick() : []);
@@ -186,125 +276,10 @@ function
         // Iterate through the DOM columns to create
         // their memory copies
         while (it0 < ln0) {
-            raw    = raws[it0];
-            real   = raw instanceof HTMLTableCellElement ?
-                     true :
-                     false;
-
-            //
-            if (real) {
-                params = raw.onclick ? raw.onclick() : {};
-                val    = raw.textContent;
-            } else {
-                params = raw;
-                val    = raw.title;
-            }
-
-            // Get the column id
-            if (raw.id) {
-                al0 = raw.id;
-            } else if (params.id) {
-                al0 = params.id;
-            } else {
-                al0 = val.substring(0, 30);
-            }
-
-            // Create an ID for the column
-            al0 = al0.
-                  replace(/(^ *| *$)/g, '').
-                  replace(/[^\w\d_]/g, '_');
-
-            // Create the memory column object
-            mem = this._mem.cols[al0] = this._mem.cols[it0] = {};
-            mem.real     = real;
-            mem.avg      = 0;
-            mem.val      = 0;
-            mem.rows     = 0;
-            mem.offset   = it0;
-            mem.alias    = al0;
-            mem.method   = params.method ?
-                           params.method :
-                           null;
-            mem.formula  = (
-                               params.formula ?
-                               params.formula :
-                               '{{ ' + al0 + '|avg }}'
-                           ).
-                           replace(
-                               /\{\{ ([\w\d_]*)\|(avg|val|rows) \}\}/g,
-                               'this._mem.cols.$1.$2'
-                           );
-            mem.civilize = params.civilize ?
-                           params.civilize :
-                           null;
-            mem.template = params.template ?
-                           params.template :
-                           '{% avg %}';
-
-            // Create the column DOM
-            if (real) {
-                // Create the column DOM nodes
-                mem.body  = col.cloneNode();
-                mem.cell  = cell.cloneNode();
-                mem.head  = col.cloneNode();
-                mem.sort  = sort.cloneNode(true);
-
-                //
-                mem.title = title.cloneNode();
-                mem.title.innerHTML = val;
-
-                //
-                if (!this._conf.inputs_off) {
-                    mem.input = input.cloneNode();
-
-                    if (params.input_off) {
-                        mem.input.removeAttribute('contenteditable');
-                    }
-                }
-
-                //
-                if (!this._conf.totals_off) {
-                    mem.total = total.cloneNode();
-                    mem.total.innerHTML = params.total && !params.total_off ?
-                                          params.total :
-                                          '&nbsp;';
-                }
-
-                // Save the column DOM nodes
-                if (!params.order_off && !this._conf.orders_off) {
-                    mem.cell.appendChild(mem.sort);
-                }
-
-                mem.cell.appendChild(mem.title);
-
-                //
-                if (!this._conf.totals_off) {
-                    mem.cell.appendChild(mem.total);
-                }
-
-                //
-                if (!this._conf.inputs_off) {
-                    mem.cell.appendChild(mem.input);
-                }
-
-                row.appendChild(mem.cell);
-                bcols.appendChild(mem.body);
-                hcols.appendChild(mem.head);
-            }
-
-            // Insert the column aliase into order arrays
-            this._order.count[it0] = al0;
-            this._order.given[it0] = al0;
+            mem = this._setup4col(it0, raws[it0]);
 
             it0++;
         }
-
-        //
-        this._dom.tmp = row;
-        this._dom.head.appendChild(hcols);
-        this._dom.body.appendChild(bcols);
-        this._dom.body.insertBefore(bcols, raws[0].parentNode.parentNode);
-        raws[0].parentNode.parentNode.insertBefore(row, raws[0].parentNode);
     }
 
     /**
@@ -318,10 +293,12 @@ function
     HumanCells.prototype._setup4prox = function() {
         this._prox.sort         = this._proxy(this._sort,         this);
         this._prox.parse        = this._proxy(this._parse,        this);
-        this._prox.ready        = this._proxy(this._ready,        this);
         this._prox.route        = this._proxy(this._route,        this);
         this._prox.total        = this._proxy(this._total,        this);
         this._prox.filter       = this._proxy(this._filter,       this);
+        this._prox.resize       = this._proxy(this._resize,       this);
+        this._prox.scroll       = this._proxy(this._scroll,       this);
+        this._prox.civilize     = this._proxy(this.civilize,      this);
         this._prox.sort4asc     = this._proxy(this._sort4asc,     this);
         this._prox.sort4desc    = this._proxy(this._sort4desc,    this);
         this._prox.sort4default = this._proxy(this._sort4default, this);
@@ -426,7 +403,8 @@ function
         }
 
         // Set the document events handlers
-        document[method](prefix + 'scroll', this._prox.route);
+        document[method](prefix + 'mousemove', this._prox.route);
+        document[method](prefix + 'scroll',    this._prox.route);
 
         it0 = events.length;
 
@@ -506,89 +484,66 @@ function
      */
     HumanCells.prototype._resize = function() {
         var
-            w0    = 0,
-            blw   = 0,
-            brw   = 0,
-            plw   = 0,
-            prw   = 0,
             it0   = 0,
             ln0   = this._order.given.length,
             col   = null,
-            body  = document.createElement('tbody'),
-            style = null;
+            mem   = null,
+            off   = null,
+            stl   = null,
+            body  = document.createElement('colgroup'),
+            head  = document.createElement('colgroup'),
+            node  = null;
 
-        //
+        // 
         while (it0 < ln0) {
-            col = this._mem.cols[it0];
+            mem = this._mem.cols[it0];
 
             //
-            if (col.real) {
-                stl = col.cell.currentStyle ?
-                      col.cell.currentStyle :
-                      window.getComputedStyle(col.cell, null);
-
-                brw = stl.borderRightWidth ?
-                      stl.borderRightWidth.replace('px', '') - 0 :
-                      0;
-                blw = stl.borderLeftWidth ?
-                      stl.borderLeftWidth.replace('px', '') - 0 :
-                      0;
-                prw = stl.paddingRight ?
-                      stl.paddingRight.replace('px', '') - 0 :
-                      0;
-                plw = stl.paddingLeft ?
-                      stl.paddingLeft.replace('px', '') - 0 :
-                      0;
-
+            if (mem.real) {
                 // Get the column offset width
-                w0 = this._offset(col.cell, this._dom.self).width;
+                off = this._offset(mem.cell, this._dom.self);
 
-                // Save the offset width
-                col.head.style.width = w0 + 'px';
-                col.body.style.width = w0 + 'px';
+                // 
+                node = document.createElement('col');
+                node.style.width = off.width + 'px';
+                node.className = 'b-humancells__col';
+                head.appendChild(node);
+
+                // 
+                node = document.createElement('col');
+                node.style.width = off.width + 'px';
+                node.className = 'b-humancells__col';
+                body.appendChild(node);
             }
 
             it0++;
         }
 
-        // Finish the DOM creation
-        this._timer.ready = setTimeout(this._prox.ready, 0);
-    }
+        // Count the total offsets
+        off = this._offset(this._dom.body);
+        this._move.from.top = off.top;
+        this._move.till.top = off.top + off.height;
 
-    /**
-     * Resize the tables and finish the DOM creation
-     *
-     * @this   {HumanCells}
-     * @return {undefined}
-     */
-    HumanCells.prototype._ready = function() {
-        var
-            off0 = 0,
-            off1 = this._offset(this._dom.body),
-            body = document.createElement('tbody');
+        this._dom.head.appendChild(head);
+        this._dom.body.insertBefore(body, this._dom.body.firstChild);
+
+        this._dom.head.style.width = off.width + 'px';
+        this._dom.body.style.width = off.width + 'px';
+
+        node = document.createElement('tbody');
+        node.appendChild(this._dom.raws);
+        this._dom.head.appendChild(node);
+
+        off = this._offset(this._dom.head);
+        this._move.till.top -= off.height;
+
+        this._dom.body.style.top = off.height + 'px';
+
+        this._dom.raws.className = 'b-humancells__row';
+        this._dom.self.className = 'b-humancells b-humancells_are_ready';
 
         // 
-        this._dom.head.style.width = off1.width + 'px';
-        this._dom.head.appendChild(body);
-        this._dom.tmp.className = 'b-humancells__row';
-        body.appendChild(this._dom.tmp);
-        off0 = this._offset(this._dom.head);
-
-        //
-        delete this._dom.tmp;
         delete this._dom.raws;
-
-        // 
-        this._dom.body.style.top   = off0.height + 'px';
-        this._dom.body.style.width = off1.width + 'px';
-
-        // 
-        this._dom.from = off0.top;
-        this._dom.till = off0.top + off1.height;
-
-        // 
-        this.ready = true;
-        this._dom.self.className += ' b-humancells_are_ready';
     }
 
     /**
@@ -615,33 +570,39 @@ function
      */
     HumanCells.prototype._parse = function() {
         var
-            real = false,
-            it0  = 0,
-            it1  = 0,
-            ln0  = 0,
-            ln1  = 0,
-            num  = 0,
-            txt  = '',
-            col  = null,
-            mem  = null,
-            raw  = null,
-            row  = null,
-            raws = null;
+            real    = false,
+            floated = this._mem.cols[0].floated,
+            it0     = 0,
+            it1     = 0,
+            ln0     = 0,
+            ln1     = 0,
+            num     = 0,
+            txt     = '',
+            col     = null,
+            mem     = null,
+            off     = null,
+            raw     = null,
+            row     = null,
+            date    = null,
+            raws    = null,
+            body    = floated ? document.createElement('tbody') : null,
+            cell    = null,
+            cells   = null;
 
         // Create the temporary object with the rows collection
-        if (!this._dom.rows) {
-            this._dom.rows = {};
-            this._dom.rows.rows = this._dom.body.querySelectorAll('.b-humancells__row');
-            this._dom.rows.step = 100;
-            this._dom.rows.loop = 0;
-            this._dom.rows.all  = this._dom.rows.rows.length;
+        if (!this._dom.raws) {
+            this._dom.raws = {};
+            this._dom.raws.rows = this._dom.body.querySelectorAll('.b-humancells__row');
+            this._dom.raws.step = 100;
+            this._dom.raws.loop = 0;
+            this._dom.raws.all  = this._dom.raws.rows.length;
         }
 
         // 
-        raws = this._dom.rows.rows;
-        it0  = this._dom.rows.loop * this._dom.rows.step;
-        ln0  = it0 + this._dom.rows.step;
-        ln0  = ln0 > this._dom.rows.all ? this._dom.rows.all : ln0;
+        raws = this._dom.raws.rows;
+        it0  = this._dom.raws.loop * this._dom.raws.step;
+        ln0  = it0 + this._dom.raws.step;
+        ln0  = ln0 > this._dom.raws.all ? this._dom.raws.all : ln0;
 
         // Iterate through trs
         while (it0 < ln0) {
@@ -669,11 +630,6 @@ function
                 if (!isNaN(num)) {
                     if (it0 == 0) {
                         this._mem.cols[it1].type = 'number';
-
-                        if (real) {
-                            this._mem.cols[it1].body.className += ' b-humancells__col_type_number';
-                            this._mem.cols[it1].head.className += ' b-humancells__col_type_number';
-                        }
                     }
 
                     this._mem.cols[it1].avg += num;
@@ -682,11 +638,6 @@ function
                 } else {
                     if (it0 == 0) {
                         this._mem.cols[it1].type = 'string';
-    
-                        if (real) {
-                            this._mem.cols[it1].body.className += ' b-humancells__col_type_string';
-                            this._mem.cols[it1].head.className += ' b-humancells__col_type_string';
-                        }
                     }
 
                     mem.cells[it1] = txt;
@@ -712,12 +663,12 @@ function
 
         // Run the next parsing iteration or finish
         // the parsing process
-        if (ln0 < this._dom.rows.all) {
-            this._dom.rows.loop++;
+        if (ln0 < this._dom.raws.all) {
+            this._dom.raws.loop++;
 
             this.parse();
         } else {
-            delete this._dom.rows;
+            delete this._dom.raws;
             this.parsed = true;
 
             // Make the first order
@@ -803,7 +754,7 @@ function
             row = this._mem.rows[it0];
 
             // Move the node
-            body.insertBefore(row.node, raws);
+            body.appendChild(row.node);
 
             // Draw «zebra»
             if (row.active) {
@@ -1124,9 +1075,8 @@ function
                   document.documentElement.scrollTop :
                   document.body.scrollTop;
 
-/*         this._dom.head.style.top = 0; */
-        if (pos > this._dom.from && pos < this._dom.till) {
-            this._dom.head.style.top = (pos - this._dom.from) + 'px';
+        if (pos > this._move.from.top && pos < this._move.till.top) {
+            this._dom.head.style.top = (pos - this._move.from.top) + 'px';
         } else {
             this._dom.head.style.top = 0;
         }
@@ -1239,14 +1189,6 @@ function
         }
     }
 
-    HumanCells.prototype._mousemove4self = function() {
-        if (!this._scrolled) {
-            return true;
-        }
-
-        this._scroll();
-    }
-
     /**
      * Scroll event handler for the document
      *
@@ -1257,10 +1199,18 @@ function
      * @return {undefined}
      */
     HumanCells.prototype._scroll4document = function(event) {
-        this._scrolled = true;
+        //
+        if (this._timers.scroll) {
+            clearTimeout(this._timers.scroll);
+        }
 
         this._dom.head.style.top = 0;
-/*         this._scroll(); */
+
+        //
+        this._timers.scroll = setTimeout(
+            this._prox.scroll,
+            150
+        );
     }
 
     /**
@@ -1357,6 +1307,20 @@ function
         }
 
         return offset;
+    }
+
+    /**
+     * Remove spaces and line breaks from the begin and the end
+     * of the string
+     *
+     * @static
+     *
+     * @this   {HumanCells}
+     * @param  {string}
+     * @return {string}
+     */
+    HumanCells.trim = function(str) {
+        return str.replace(/(^\s*|\s*$)/g, '');
     }
 
     /**

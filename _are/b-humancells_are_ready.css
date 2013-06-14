@@ -3,7 +3,6 @@
     position: absolute;
     top:      0;
     left:     0;
-    z-index:  2;
 
     table-layout: fixed;
 }
@@ -17,7 +16,11 @@
     border-top-width: 0;
 }
 
-.b-humancells_are_ready .b-humancells__raws
+.b-humancells_are_ready .b-humancells__aside
 {
-    display: none;
+    position: absolute;
+    top:      0;
+    left:     0;
+
+    table-layout: fixed;
 }

@@ -1,0 +1,29 @@
+.b-humancells__aside
+{
+    border-color:   #B1B1B1;
+    border-style:   solid;
+    border-width:   0 0 1px 1px;
+    border-spacing: 0;
+}
+
+.b-humancells__aside .b-humancells__cell
+{
+    font-size: 13px;
+
+    line-height: 15px;
+
+    padding: 3px 5px;
+
+    border-color: #FFF #FAFAFA #EDEDED #FAFAFA;
+    border-style: solid;
+    border-width: 1px 0;
+
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing:    border-box;
+    box-sizing:         border-box;
+}
+
+.b-humancells__aside .b-humancells__row_is_odd
+{
+    background: #F1F4F7;
+}
