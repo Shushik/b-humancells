@@ -107,14 +107,13 @@ function
      */
     HumanCells.prototype._setup4col = function(pos, raw) {
         var
-            real    = raw instanceof HTMLTableCellElement,
-            floated = false,
-            id      = '',
-            html    = real ? raw.innerHTML : '',
-            text    = !real ? raw.value : raw.textContent,
-            mem     = {},
-            node    = null,
-            params  = {};
+            real   = raw instanceof HTMLTableCellElement,
+            id     = '',
+            html   = real ? raw.innerHTML : '',
+            text   = !real ? raw.value : raw.textContent,
+            mem    = {},
+            node   = null,
+            params = {};
 
         // Get the column settings
         if (!real) {
@@ -140,7 +139,6 @@ function
         // Create the virtual column and set it`s main properties
         mem = this._mem.cols[pos] = this._mem.cols[id] = {};
         mem.real     = real;
-        mem.floated  = floated = (pos == 0 && params.floated != undefined ? true : false);
         mem.avg      = 0;
         mem.val      = 0;
         mem.rows     = 0;
@@ -268,6 +266,7 @@ function
             it0  = 0,
             ln0  = 0,
             mem  = null,
+            node = null,
             raws = null;
 
         // Create the memory stacks
@@ -395,10 +394,8 @@ function
             method = '',
             prefix = '',
             events = [
-                'focus',
                 'keyup',
                 'mousedown',
-                'mousemove',
                 'touchstart'
             ];
 
@@ -511,15 +508,17 @@ function
                 // Get the column offset width
                 off = this._offset(mem.cell, this._dom.self);
 
+                mem.width = off.width;
+
                 // 
                 node = document.createElement('col');
-                node.style.width = off.width + 'px';
+                node.width = off.width;
                 node.className = 'b-humancells__col';
                 head.appendChild(node);
 
                 // 
                 node = document.createElement('col');
-                node.style.width = off.width + 'px';
+                node.width = off.width;
                 node.className = 'b-humancells__col';
                 body.appendChild(node);
             }
@@ -535,8 +534,8 @@ function
         this._dom.head.appendChild(head);
         this._dom.body.insertBefore(body, this._dom.body.firstChild);
 
-        this._dom.head.style.width = off.width + 'px';
-        this._dom.body.style.width = off.width + 'px';
+        this._dom.head.width = off.width;
+        this._dom.body.width = off.width;
 
         node = document.createElement('tbody');
         this._dom.head.appendChild(node);
@@ -585,23 +584,20 @@ function
      */
     HumanCells.prototype._parse = function() {
         var
-            real    = false,
-            floated = this._mem.cols[0].floated,
-            it0     = 0,
-            it1     = 0,
-            ln0     = 0,
-            ln1     = 0,
-            num     = 0,
-            txt     = '',
-            col     = null,
-            mem     = null,
-            off     = null,
-            raw     = null,
-            row     = null,
-            raws    = null,
-            body    = floated ? document.createElement('tbody') : null,
-            cell    = null,
-            cells   = null;
+            real = false,
+            it0  = 0,
+            it1  = 0,
+            ln0  = 0,
+            ln1  = 0,
+            num  = 0,
+            txt  = '',
+            col  = null,
+            mem  = null,
+            off  = null,
+            raw  = null,
+            row  = null,
+            node = null,
+            raws = null;
 
         // Create the temporary object with the rows collection
         if (!this._dom.raws) {
@@ -612,7 +608,7 @@ function
             this._dom.raws.all  = this._dom.raws.rows.length;
         }
 
-        // 
+        // Fill important variables
         raws = this._dom.raws.rows;
         it0  = this._dom.raws.loop * this._dom.raws.step;
         ln0  = it0 + this._dom.raws.step;
@@ -640,8 +636,8 @@ function
                 txt  = real ? col.textContent : col;
                 num  = txt - 0;
 
-                //
                 if (!isNaN(num)) {
+                    // Number value
                     if (it0 == 0) {
                         this._mem.cols[it1].type = 'number';
                     }
@@ -650,6 +646,7 @@ function
 
                     mem.cells[it1] = num;
                 } else {
+                    // String value
                     if (it0 == 0) {
                         this._mem.cols[it1].type = 'string';
                     }
@@ -667,9 +664,9 @@ function
 
             // Draw «zebra»
             if (!(it0 % 2)) {
-                row.className = 'b-humancells__row b-humancells__row_is_odd';
+                mem.node.className = 'b-humancells__row b-humancells__row_is_odd';
             } else {
-                row.className = 'b-humancells__row b-humancells__row_is_even';
+                mem.node.className = 'b-humancells__row b-humancells__row_is_even';
             }
 
             it0++;
@@ -911,7 +908,7 @@ function
 
                 if (
                     col.filter &&
-                    (row.cells[it1] + '').indexOf(col.filter) == -1
+                    !(row.cells[it1] + '').match(new RegExp(col.filter, 'i'))
                 ) {
                     off = true;
 
