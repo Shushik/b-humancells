@@ -44,6 +44,14 @@
     box-sizing:         border-box;
 }
 
+.b-humancells__body .b-humancells__cell_is_caption
+{
+    white-space: nowrap;
+
+/*     background:          #E4E8ED; */
+/*     border-bottom-color: #B1B1B1; */
+}
+
 .b-humancells__body .b-humancells__row_is_odd .b-humancells__cell
 {
     border-right-color: #F1F4F7;

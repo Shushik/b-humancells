@@ -254,6 +254,69 @@ function
     }
 
     /**
+     * Create the row object
+     *
+     * @private
+     *
+     * @this   {HumanCells}
+     * @param  {number}
+     * @param  {Array}
+     * @return {object}
+     */
+    HumanCells.prototype._setup4row = function(pos, raw) {
+        var
+            real = false,
+            it0  = 0,
+            ln0  = raw.length,
+            num  = 0,
+            txt  = '',
+            mem  = {
+                
+            },
+            row  = raw[0].parentNode,
+            cell = null;
+
+        // 
+        mem.active = true;
+        mem.offset = pos;
+        mem.cells  = [];
+        mem.body   = row;
+
+        // Iterate through tds
+        while (it0 < ln0) {
+            cell = raw[it0];
+            real = cell instanceof HTMLTableCellElement;
+            txt  = real ? cell.textContent : cell;
+            num  = txt - 0;
+
+            if (!isNaN(num)) {
+                // Number value
+                if (pos == 0) {
+                    this._mem.cols[it0].type = 'number';
+                }
+
+                this._mem.cols[it0].avg += num;
+
+                mem.cells[it0] = num;
+            } else {
+                // String value
+                if (pos == 0) {
+                    this._mem.cols[it0].type = 'string';
+                }
+
+                mem.cells[it0] = txt;
+            }
+
+            // Count rows
+            this._mem.cols[it0].rows++;
+
+            it0++;
+        }
+
+        return mem;
+    }
+
+    /**
      * Create the memory stacks
      *
      * @private
@@ -489,15 +552,15 @@ function
      */
     HumanCells.prototype._resize = function() {
         var
-            it0   = 0,
-            ln0   = this._order.given.length,
-            col   = null,
-            mem   = null,
-            off   = null,
-            stl   = null,
-            body  = document.createElement('colgroup'),
-            head  = document.createElement('colgroup'),
-            node  = null;
+            it0  = 0,
+            ln0  = this._order.given.length,
+            col  = null,
+            mem  = null,
+            off  = null,
+            stl  = null,
+            body = document.createElement('colgroup'),
+            head = document.createElement('colgroup'),
+            node = null;
 
         // 
         while (it0 < ln0) {
@@ -526,7 +589,7 @@ function
             it0++;
         }
 
-        // Count the total offsets
+        //
         off = this._offset(this._dom.body);
         this._move.from.top = off.top;
         this._move.till.top = off.top + off.height;
@@ -553,6 +616,8 @@ function
 
         this.ready = true;
 
+        // Scroll a hat to a current position and turn
+        // the spinner on
         this._scroll();
         this.wait();
 
@@ -584,20 +649,20 @@ function
      */
     HumanCells.prototype._parse = function() {
         var
-            real = false,
-            it0  = 0,
-            it1  = 0,
-            ln0  = 0,
-            ln1  = 0,
-            num  = 0,
-            txt  = '',
-            col  = null,
-            mem  = null,
-            off  = null,
-            raw  = null,
-            row  = null,
-            node = null,
-            raws = null;
+            real   = false,
+            it0    = 0,
+            it1    = 0,
+            ln0    = 0,
+            ln1    = 0,
+            num    = 0,
+            height = 0,
+            txt    = '',
+            col    = null,
+            mem    = null,
+            raw    = null,
+            row    = null,
+            node   = null,
+            raws   = null;
 
         // Create the temporary object with the rows collection
         if (!this._dom.raws) {
@@ -618,56 +683,19 @@ function
         while (it0 < ln0) {
             row = raws[it0];
             raw = Array.prototype.
-                  slice.call(row.getElementsByTagName('td'));
-            raw = raw.concat(row.onclick ? row.onclick() : []);
-            mem = {
-                active : true,
-                offset : it0,
-                node   : row,
-                cells  : []
-            };
-            it1 = 0;
-            ln1 = raw.length;
-
-            // Iterate through tds
-            while (it1 < ln1) {
-                col  = raw[it1];
-                real = this._mem.cols[it1].real;
-                txt  = real ? col.textContent : col;
-                num  = txt - 0;
-
-                if (!isNaN(num)) {
-                    // Number value
-                    if (it0 == 0) {
-                        this._mem.cols[it1].type = 'number';
-                    }
-
-                    this._mem.cols[it1].avg += num;
-
-                    mem.cells[it1] = num;
-                } else {
-                    // String value
-                    if (it0 == 0) {
-                        this._mem.cols[it1].type = 'string';
-                    }
-
-                    mem.cells[it1] = txt;
-                }
-
-                this._mem.cols[it1].rows++;
-
-                it1++;
-            }
-
-            // Create a memory row
-            this._mem.rows[it0] = mem;
+                  slice.call(row.getElementsByTagName('td')).
+                  concat(row.onclick ? row.onclick() : []);
+            mem = this._setup4row(it0, raw);
 
             // Draw «zebra»
             if (!(it0 % 2)) {
-                mem.node.className = 'b-humancells__row b-humancells__row_is_odd';
+                mem.body.className = 'b-humancells__row b-humancells__row_is_odd';
             } else {
-                mem.node.className = 'b-humancells__row b-humancells__row_is_even';
+                mem.body.className = 'b-humancells__row b-humancells__row_is_even';
             }
+
+            // Create a memory row object
+            this._mem.rows[it0] = mem;
 
             it0++;
         }
@@ -711,6 +739,7 @@ function
 
         //
         if (this._mem.cols[col]) {
+            // Turn the spinner on
             this.wait();
 
             if (this._order.col) {
@@ -741,8 +770,7 @@ function
             ln0  = this._mem.rows.length,
             row  = null,
             body = this._dom.body.
-                   getElementsByTagName('tbody')[0],
-            raws = this._dom.raws;
+                   getElementsByTagName('tbody')[0];
 
         // Scroll to the top and run the spinner
         (
@@ -751,7 +779,7 @@ function
             window
         ).scrollTop = this._dom.from;
 
-        //
+        // Get the order settings
         if (this._order.type != 'default') {
             this._mem.cols[this._order.col].
             cell.className = 'b-humancells__cell ' +
@@ -767,14 +795,14 @@ function
             row = this._mem.rows[it0];
 
             // Move the node
-            body.appendChild(row.node);
+            body.appendChild(row.body);
 
             // Draw «zebra»
             if (row.active) {
                 if (!(it1 % 2)) {
-                    row.node.className = 'b-humancells__row b-humancells__row_is_odd';
+                    row.body.className = 'b-humancells__row b-humancells__row_is_odd';
                 } else {
-                    row.node.className = 'b-humancells__row b-humancells__row_is_even';
+                    row.body.className = 'b-humancells__row b-humancells__row_is_even';
                 }
 
                 it1++;
@@ -783,6 +811,7 @@ function
             it0++;
         }
 
+        // Turn the spinner off
         this.unwait();
     }
 
@@ -856,17 +885,24 @@ function
      * @return {HumanCells}
      */
     HumanCells.prototype.filter = function(col, word) {
+        // Reset the previous timer
         if (this._timers.filter) {
             clearTimeout(this._timers.filter);
         }
 
-        this.wait();
+        if (this._mem.cols[col]) {
+            // Turn the spinner on
+            this.wait();
 
-        //
-        this._mem.cols[col].filter = word;
+            // Create and save the filter regular expression
+            this._mem.cols[col].filter = new RegExp(
+                word.replace('.', '\\.').replace('*', '.*'),
+                'i'
+            );
 
-        //
-        this._timers.filter = setTimeout(this._prox.filter, 350);
+            // Run the new timer
+            this._timers.filter = setTimeout(this._prox.filter, 350);
+        }
 
         return this;
     }
@@ -908,7 +944,7 @@ function
 
                 if (
                     col.filter &&
-                    !(row.cells[it1] + '').match(new RegExp(col.filter, 'i'))
+                    !(row.cells[it1] + '').match(col.filter)
                 ) {
                     off = true;
 
@@ -921,7 +957,7 @@ function
             if (off) {
                 // Hide row
                 row.active = false;
-                row.node.className = 'b-humancells__row b-humancells__row_is_off';
+                row.body.className = 'b-humancells__row b-humancells__row_is_off';
             } else {
                 it1 = 0;
 
@@ -930,9 +966,9 @@ function
 
                 // Draw «zebra»
                 if (!(it2 % 2)) {
-                    row.node.className = 'b-humancells__row b-humancells__row_is_odd';
+                    row.body.className = 'b-humancells__row b-humancells__row_is_odd';
                 } else {
-                    row.node.className = 'b-humancells__row b-humancells__row_is_even';
+                    row.body.className = 'b-humancells__row b-humancells__row_is_even';
                 }
 
                 // Recount the totals
@@ -1053,6 +1089,7 @@ function
             it0++;
         }
 
+        // Turn the spinner off
         this.unwait();
     }
 
