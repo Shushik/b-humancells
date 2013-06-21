@@ -589,31 +589,37 @@ function
             it0++;
         }
 
-        //
-        off = this._offset(this._dom.body);
-        this._move.from.top = off.top;
-        this._move.till.top = off.top + off.height;
-
+        // Save columns
         this._dom.head.appendChild(head);
         this._dom.body.insertBefore(body, this._dom.body.firstChild);
 
-        this._dom.head.width = off.width;
-        this._dom.body.width = off.width;
+        // Count the table body offset
+        body = this._offset(this._dom.body);
 
+        // Set the width for the table head and body
+        this._dom.body.width = body.width;
+        this._dom.head.width = body.width;
+
+        // Move header nodes to the rightfull place
         node = document.createElement('tbody');
         this._dom.head.appendChild(node);
         this._dom.wait.firstChild.setAttribute('colspan', this._order.real);
         node.appendChild(this._dom.raws);
         node.appendChild(this._dom.wait);
 
-        off = this._offset(this._dom.head);
-        this._move.till.top -= off.height;
+        // Get the table head offset
+        head = this._offset(this._dom.head, this._dom.self);
 
-        this._dom.body.style.top = off.height + 'px';
+        // Set the top position for the body table
+        this._dom.body.style.top = head.height + 'px';
 
+        // Save the vertical limits for scrolling
+        this._move.from.top = body.top;
+        this._move.till.top = body.top + body.height;
+
+        // Last settings
         this._dom.raws.className = 'b-humancells__row';
         this._dom.self.className = 'b-humancells b-humancells_are_ready';
-
         this.ready = true;
 
         // Scroll a hat to a current position and turn
@@ -621,7 +627,7 @@ function
         this._scroll();
         this.wait();
 
-        // 
+        // Clean the raw object
         delete this._dom.raws;
     }
 
