@@ -283,7 +283,7 @@ function
         while (it0 < ln0) {
             cell = raw[it0];
             real = cell instanceof HTMLTableCellElement;
-            txt  = real ? HumanCells.trim(cell.textContent) : HumanCells.trim(cell);
+            txt  = real ? cell.textContent : cell;
             num  = txt - 0;
 
             if (!isNaN(num)) {
@@ -301,7 +301,7 @@ function
                     this._mem.cols[it0].type = 'string';
                 }
 
-                mem.cells[it0] = txt;
+                mem.cells[it0] = HumanCells.trim(txt);
             }
 
             // Count rows
