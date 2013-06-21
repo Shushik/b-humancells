@@ -29,13 +29,13 @@ function
             this._conf[al0] = conf[al0];
         }
 
-        //
+        // Set the default delimiter
         if (!conf.number_separator) {
             this._conf.number_separator = ' ';
         }
 
-        //
         if (conf.initialization_delay) {
+            // Initialization should be delayed once
             delete this._conf.initialization_delay;
         } else {
             // Start when the DOM is ready
@@ -58,7 +58,6 @@ function
         this.ready    = false;
         this.parsed   = false;
         this.thinking = false;
-        this._timer   = 0;
         this._mem     = {};
         this._move    = {};
         this._order   = {};
@@ -471,8 +470,9 @@ function
         }
 
         // Set the document events handlers
-        document[method](prefix + 'mousemove', this._prox.route);
-        document[method](prefix + 'scroll',    this._prox.route);
+        if (this._conf.captions_float === undefined) {
+            document[method](prefix + 'scroll', this._prox.route);
+        }
 
         it0 = events.length;
 
@@ -614,8 +614,10 @@ function
         this._dom.body.style.top = head.height + 'px';
 
         // Save the vertical limits for scrolling
-        this._move.from.top = body.top;
-        this._move.till.top = body.top + body.height;
+        if (this._conf.captions_float === undefined) {
+            this._move.from.top = body.top;
+            this._move.till.top = body.top + body.height;
+        }
 
         // Last settings
         this._dom.raws.className = 'b-humancells__row';
@@ -778,12 +780,15 @@ function
             body = this._dom.body.
                    getElementsByTagName('tbody')[0];
 
-        // Scroll to the top and run the spinner
-        (
-            document.documentElement ?
-            document.documentElement :
-            window
-        ).scrollTop = this._dom.from;
+        // Scroll to the top
+        if (this._conf.captions_float === undefined) {
+            (
+                document.documentElement ?
+                document.documentElement :
+                window
+            ).scrollTop = this._dom.from;
+            this._dom.scrollTop = 0;
+        }
 
         // Get the order settings
         if (this._order.type != 'default') {
@@ -902,7 +907,7 @@ function
 
             // Create and save the filter regular expression
             this._mem.cols[col].filter = new RegExp(
-                word.replace('.', '\\.').replace('*', '.*'),
+                word.replace(/(\d)\.(\d)/g, '$1\\.$2'),
                 'i'
             );
 
@@ -932,19 +937,22 @@ function
             cell = null;
 
         // Scroll to the top
-        (
-            document.documentElement ?
-            document.documentElement :
-            window
-        ).scrollTop = this._dom.from;
+        if (this._conf.captions_float === undefined) {
+            (
+                document.documentElement ?
+                document.documentElement :
+                window
+            ).scrollTop = this._dom.from;
+            this._dom.scrollTop = 0;
+        }
 
-        //
+        // Check all rows with all columns filter
         while (it0 < ln0) {
             off = false;
             it1 = 0;
             row = this._mem.rows[it0];
 
-            //
+            // Check a cell
             while (it1 < ln1) {
                 col = this._mem.cols[it1];
 

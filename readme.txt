@@ -122,6 +122,9 @@
      parsing_delay        | True if you want to run the table parsing
                           | later.
     --------------------------------------------------------------------------
+     captions_float       | False if you don`t want top and left captions
+                          | to move after the scroll.
+    --------------------------------------------------------------------------
      initialization_delay | True if you want to run the initialization later.
     --------------------------------------------------------------------------
      order_type           | Order type for a next paramether:
@@ -195,46 +198,46 @@
 
     Column settings list:
 
-     param     | value
-    ===========================================================================
-     input_off | True if you want to turn off the filter control for
-               | the column only.
-    ---------------------------------------------------------------------------
-     order_off | True if you want to turn off the ordering control
-               | for the column only.
-    ---------------------------------------------------------------------------
-     total_off | True if you want to turn off the totals string for the
-               | column only.
-    ---------------------------------------------------------------------------
-     total     | Number for the default total string value
-    ---------------------------------------------------------------------------
-     method    | String alias for a Math object method which will be applied
-               | to formula results or your own function to make it yorself.
-               | 
-               | The function should get the only number argument and
-               | return number.
-    ---------------------------------------------------------------------------
-     formula   | Formula to count total using the other columns totals.
-               | May take the following variables:
-               | — {{ %column_alias%|avg }}  — simple sum of all values
-               |                               in the given columns;
-               | — {{ %column_alias%|val }}  — value counted through the
-               |                               given column formula;
-               | — {{ %column_alias%|rows }} — the number of rows in the
-               |                               given column.
-               |
-               | {{% %column_name%|avg %}} by default.
-    ---------------------------------------------------------------------------
-     template  | template for total string output. May take the following
-               | pseudo tags:
-               | — {% avg %}  — simple sum of all values in column;
-               | — {% val %}  — value counted through the column formula;
-               | — {% rows %} — number of rows in column.
-               |
-               | {% avg %} by default.
-    ---------------------------------------------------------------------------
-     civilize  | A function to civilize the output of the column total string.
-    ===========================================================================
+     param      | value
+    ============================================================================
+     input_off  | True if you want to turn off the filter control for
+                | the column only.
+    ----------------------------------------------------------------------------
+     order_off  | True if you want to turn off the ordering control
+                | for the column only.
+    ----------------------------------------------------------------------------
+     total_off  | True if you want to turn off the totals string for the
+                | column only.
+    ----------------------------------------------------------------------------
+     total      | Number for the default total string value
+    ----------------------------------------------------------------------------
+     method     | String alias for a Math object method which will be applied
+                | to formula results or your own function to make it yorself.
+                | 
+                | The function should get the only number argument and
+                | return number.
+    ----------------------------------------------------------------------------
+     formula    | Formula to count total using the other columns totals.
+                | May take the following variables:
+                | — {{ %column_alias%|avg }}  — simple sum of all values
+                |                               in the given columns;
+                | — {{ %column_alias%|val }}  — value counted through the
+                |                               given column formula;
+                | — {{ %column_alias%|rows }} — the number of rows in the
+                |                               given column.
+                |
+                | {{% %column_name%|avg %}} by default.
+    ----------------------------------------------------------------------------
+     template   | template for total string output. May take the following
+                | pseudo tags:
+                | — {% avg %}  — simple sum of all values in column;
+                | — {% val %}  — value counted through the column formula;
+                | — {% rows %} — number of rows in column.
+                |
+                | {% avg %} by default.
+    ----------------------------------------------------------------------------
+     civilize   | A function to civilize the output of the column total string.
+    ============================================================================
 
 
 
@@ -368,26 +371,35 @@
 
     Instance methods:
 
-     method    | value
+     method      | value
     ===========================================================================
-     .init()   | Should be called if the initialization_delay paramether was
-               | given only
+     .init()     | Should be called if the initialization_delay paramether was
+                 | given only.
     ---------------------------------------------------------------------------
-     .sort()   | A column sorter caller for manual sorting. Takes two
-               | arguments:
-               | — column alias (id);
-               | — asc or desc order type (optional).
+     .sort()     | A column sorter caller for manual sorting. Takes two
+                 | arguments:
+                 | — column alias (id);
+                 | — asc or desc order type (optional).
     ---------------------------------------------------------------------------
-     .parse()  | Should be called if the parsing_delay paramether was given
-               | only
+     .wait()     | Turn the table spinner on.
     ---------------------------------------------------------------------------
-     .total()  | All columns totals recounter for manual call
+     .parse()    | Should be called if the parsing_delay paramether was given
+                 | only.
     ---------------------------------------------------------------------------
-     .filter() | A column filter caller for manual filtering. Takes two
-               | arguments:
-               | — column alias (id);
-               | — string to search.
+     .total()    | All columns totals recounter for manual call.
     ---------------------------------------------------------------------------
+     .filter()   | A column filter caller for manual filtering. Takes two
+                 | arguments:
+                 | — column alias (id);
+                 | — string to search.
+    ---------------------------------------------------------------------------
+     .unwait()   | Turn the table spinner off.
+    ---------------------------------------------------------------------------
+     .civilize() | Places the thousand and million delimiter into a number
+                 | using a delimiter from HumanCells instance settings. Takes
+                 | one argument:
+                 | — number that should be delimited.
+    ===========================================================================
 
 
 
