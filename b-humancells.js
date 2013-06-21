@@ -269,13 +269,11 @@ function
             ln0  = raw.length,
             num  = 0,
             txt  = '',
-            mem  = {
-                
-            },
+            mem  = {},
             row  = raw[0].parentNode,
             cell = null;
 
-        // 
+        // Prefill the memory row object
         mem.active = true;
         mem.offset = pos;
         mem.cells  = [];
@@ -285,7 +283,7 @@ function
         while (it0 < ln0) {
             cell = raw[it0];
             real = cell instanceof HTMLTableCellElement;
-            txt  = real ? cell.textContent : cell;
+            txt  = real ? HumanCells.trim(cell.textContent) : HumanCells.trim(cell);
             num  = txt - 0;
 
             if (!isNaN(num)) {
