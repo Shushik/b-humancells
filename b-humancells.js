@@ -1,8 +1,9 @@
 /**
  * Yet another tool to sort and filter html tables
  *
- * @author  Shushik <silkleopard@yandex.ru>
- * @version 1.0
+ * @author   Shushik <silkleopard@yandex.ru>
+ * @version  1.0
+ * @homepage http://silkleo.ru/fun/b-humancells/
  *
  * @constructor
  *

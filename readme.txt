@@ -1,5 +1,6 @@
 
-    b-humancells — clientside table sorter and filterer for HTML tables
+    b-humancells — clientside table sorter and filterer for HTML tables.
+    Working example: http://silkleo.ru/fun/b-humancells/
 
 
 
