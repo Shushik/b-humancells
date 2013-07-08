@@ -3,7 +3,8 @@
  *
  * @author   Shushik <silkleopard@yandex.ru>
  * @version  1.0
- * @homepage http://silkleo.ru/fun/b-humancells/
+ * @example  http://silkleo.ru/fun/b-humancells/
+ * @homepage http://github.com/shushik/b-humancells/
  *
  * @constructor
  *
